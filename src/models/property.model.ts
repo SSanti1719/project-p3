@@ -1,4 +1,5 @@
-import {Entity, model, property} from '@loopback/repository';
+import {Entity, model, property, hasMany} from '@loopback/repository';
+import {Request} from './request.model';
 
 @model()
 export class Property extends Entity {
@@ -33,6 +34,8 @@ export class Property extends Entity {
   })
   status: string;
 
+  @hasMany(() => Request)
+  requests: Request[];
 
   constructor(data?: Partial<Property>) {
     super(data);
