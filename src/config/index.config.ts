@@ -14,5 +14,13 @@ const sendgrid = {
   key: process.env.SENDGRID_API_KEY,
   email: process.env.SENDGRID_EMAIL,
 };
+console.log(sendgrid);
 
-export {mongodb, sendgrid};
+
+const jwt = {
+  secret_Key: process.env.JWT_SECRET_KEY,
+  expiration_time: process.env.JWT_EXPIRATION_TIME
+}
+
+export {mongodb, sendgrid, jwt};
+

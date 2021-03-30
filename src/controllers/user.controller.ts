@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -17,19 +17,22 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
+import {Credentials} from '../config/interfaces';
 import {User} from '../models';
 import {UserRepository} from '../repositories';
+import {AuthService} from '../services';
 import {GeneralFunctionsService} from '../services/general-functions.service';
-
 export class UserController {
   constructor(
     @repository(UserRepository)
     public userRepository: UserRepository,
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
-  ) {}
+    @service(AuthService)
+    public authenticationService: AuthService
+  ) { }
 
   @post('/users')
   @response(200, {
@@ -68,6 +71,26 @@ export class UserController {
     await this.generalFunctions.EmailNotification(emailData, emailSignUp);
 
     return newUser;
+  }
+
+  @post('/users/login')
+  @response(200, {
+    description: 'User login'
+  })
+  async login(
+    @requestBody() credentials: Credentials
+  ): Promise<Object> {
+    let user = await this.authenticationService.IdentifyUser(credentials.username, credentials.password);
+
+    if (!user) {
+      throw new HttpErrors.Unauthorized('Username or password incorrect');
+    } else {
+      let token = this.authenticationService.GenerateToken(user);
+      return {
+        username: user.email,
+        token
+      }
+    }
   }
 
   @get('/users/count')

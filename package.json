@@ -59,6 +59,7 @@
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
     "generate-password": "^1.6.0",
+    "jsonwebtoken": "^8.5.1",
     "loopback-connector-mongodb": "^5.5.0",
     "tslib": "^2.0.0",
     "twilio": "^3.59.0"
