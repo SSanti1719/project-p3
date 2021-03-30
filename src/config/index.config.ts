@@ -6,9 +6,6 @@ const mongodb = {
   user: process.env.MONGO_USER,
   password: process.env.MONGO_PASSWORD,
   db_name: process.env.MONGO_DB_NAME,
-  port: 27017
-}
-export {
-  mongodb
+  port: 27017,
 };
-
+export {mongodb};
