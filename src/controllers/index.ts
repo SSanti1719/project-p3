@@ -18,4 +18,11 @@ export * from './property.controller';
 export * from './request-client.controller';
 export * from './request-property.controller';
 export * from './request.controller';
-
+export * from './block-property.controller';
+export * from './property-block.controller';
+export * from './city-project.controller';
+export * from './project-city.controller';
+export * from './client-finances.controller';
+export * from './finances-client.controller';
+export * from './request-payment.controller';
+export * from './payment-request.controller';
