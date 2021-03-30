@@ -4,3 +4,6 @@ export * from './country.model';
 export * from './project.model';
 export * from './property.model';
 export * from './request.model';
+export * from './client.model';
+export * from './payment.model';
+export * from './admin.model';
