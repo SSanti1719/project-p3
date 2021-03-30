@@ -7,3 +7,4 @@ export * from './payment.repository';
 export * from './project.repository';
 export * from './property.repository';
 export * from './request.repository';
+export * from './user.repository';

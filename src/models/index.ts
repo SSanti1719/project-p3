@@ -7,3 +7,4 @@ export * from './payment.model';
 export * from './project.model';
 export * from './property.model';
 export * from './request.model';
+export * from './user.model';

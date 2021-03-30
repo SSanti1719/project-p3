@@ -26,3 +26,7 @@ export * from './client-finances.controller';
 export * from './finances-client.controller';
 export * from './request-payment.controller';
 export * from './payment-request.controller';
+export * from './user-request.controller';
+export * from './request-user.controller';
+export * from './city-user.controller';
+export * from './user-city.controller';
