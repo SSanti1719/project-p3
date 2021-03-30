@@ -1,4 +1,3 @@
-export * from './admin.repository';
 export * from './block.repository';
 export * from './city.repository';
 export * from './client.repository';
@@ -8,5 +7,3 @@ export * from './payment.repository';
 export * from './project.repository';
 export * from './property.repository';
 export * from './request.repository';
-export * from './seller.repository';
-export * from './user.repository';

@@ -1,4 +1,3 @@
-export * from './admin.model';
 export * from './block.model';
 export * from './city.model';
 export * from './client.model';
@@ -8,5 +7,3 @@ export * from './payment.model';
 export * from './project.model';
 export * from './property.model';
 export * from './request.model';
-export * from './seller.model';
-export * from './user.model';
