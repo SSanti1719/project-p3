@@ -5,20 +5,23 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
-  del, get,
-  getModelSchemaRef, param,
-  patch, post,
+  del,
+  get,
+  getModelSchemaRef,
+  HttpErrors,
+  param,
+  patch,
+  post,
   put,
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
 import {User} from '../models';
 import {UserRepository} from '../repositories';
 import {GeneralFunctionsService} from '../services/general-functions.service';
-
 
 export class UserController {
   constructor(
@@ -26,7 +29,7 @@ export class UserController {
     public userRepository: UserRepository,
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
-  ) { }
+  ) {}
 
   @post('/users')
   @response(200, {
@@ -50,7 +53,20 @@ export class UserController {
     let encryptPassword = this.generalFunctions.EncryptPassword(randomPassword);
 
     user.password = encryptPassword;
+
     let newUser = await this.userRepository.create(user);
+
+    if (!newUser) {
+      throw new HttpErrors.InternalServerError();
+    }
+
+    const emailSignUp = 'signUp';
+    const emailData = {
+      email: newUser.email,
+      password: randomPassword,
+    };
+    await this.generalFunctions.EmailNotification(emailData, emailSignUp);
+
     return newUser;
   }
 
@@ -59,9 +75,7 @@ export class UserController {
     description: 'User model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(User) where?: Where<User>,
-  ): Promise<Count> {
+  async count(@param.where(User) where?: Where<User>): Promise<Count> {
     return this.userRepository.count(where);
   }
 
@@ -77,9 +91,7 @@ export class UserController {
       },
     },
   })
-  async find(
-    @param.filter(User) filter?: Filter<User>,
-  ): Promise<User[]> {
+  async find(@param.filter(User) filter?: Filter<User>): Promise<User[]> {
     return this.userRepository.find(filter);
   }
 
@@ -113,7 +125,7 @@ export class UserController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(User, {exclude: 'where'}) filter?: FilterExcludingWhere<User>
+    @param.filter(User, {exclude: 'where'}) filter?: FilterExcludingWhere<User>,
   ): Promise<User> {
     return this.userRepository.findById(id, filter);
   }
