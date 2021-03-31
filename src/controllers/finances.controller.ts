@@ -4,27 +4,39 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
+  del, get,
   getModelSchemaRef,
-  patch,
+
+
+
+
+
+  HttpErrors, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Finances} from '../models';
-import {FinancesRepository} from '../repositories';
+import {ClientRepository, FinancesRepository} from '../repositories';
 
 export class FinancesController {
   constructor(
     @repository(FinancesRepository)
-    public financesRepository : FinancesRepository,
-  ) {}
+    public financesRepository: FinancesRepository,
+    @repository(ClientRepository)
+    public clientRepository: ClientRepository,
+  ) { }
 
   @post('/finances')
   @response(200, {
@@ -44,6 +56,7 @@ export class FinancesController {
     })
     finances: Omit<Finances, 'id'>,
   ): Promise<Finances> {
+    if (!finances.clientId || !(await this.clientRepository.findById(finances.clientId))) throw new HttpErrors.BadRequest('ClientId no valid');
     return this.financesRepository.create(finances);
   }
 

@@ -4,27 +4,39 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
+  del, get,
   getModelSchemaRef,
-  patch,
+
+
+
+
+
+  HttpErrors, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Client} from '../models';
-import {ClientRepository} from '../repositories';
+import {CityRepository, ClientRepository} from '../repositories';
 
 export class ClientController {
   constructor(
     @repository(ClientRepository)
-    public clientRepository : ClientRepository,
-  ) {}
+    public clientRepository: ClientRepository,
+    @repository(CityRepository)
+    public cityRepository: CityRepository,
+  ) { }
 
   @post('/clients')
   @response(200, {
@@ -44,6 +56,7 @@ export class ClientController {
     })
     client: Omit<Client, 'id'>,
   ): Promise<Client> {
+    if (!client.cityId || !(await this.cityRepository.findById(client.cityId))) throw new HttpErrors.BadRequest('CityId no valid');
     return this.clientRepository.create(client);
   }
 
