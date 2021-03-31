@@ -10,5 +10,8 @@ interface changePasswordCredentials {
   newPassword: string;
 }
 
-export {Credentials, changePasswordCredentials};
+interface resetPasswordCredentials {
+  username: string;
+}
 
+export {Credentials, changePasswordCredentials, resetPasswordCredentials};

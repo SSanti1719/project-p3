@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
   del,
@@ -17,13 +17,18 @@ import {
   post,
   put,
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
-import {changePasswordCredentials, Credentials} from '../config/interfaces';
+import {emailTypes} from '../config/index.config';
+import {
+  changePasswordCredentials,
+  Credentials,
+  resetPasswordCredentials,
+} from '../config/interfaces';
 import {User} from '../models';
 import {
   adminAuthenticate,
-  sellerAuthenticate
+  sellerAuthenticate,
 } from '../providers/auth-strategy.provider';
 import {UserRepository} from '../repositories';
 import {AuthService} from '../services';
@@ -37,7 +42,7 @@ export class UserController {
     public generalFunctions: GeneralFunctionsService,
     @service(AuthService)
     public authenticationService: AuthService,
-  ) { }
+  ) {}
 
   @post('/users')
   @response(200, {
@@ -68,12 +73,14 @@ export class UserController {
       throw new HttpErrors.InternalServerError();
     }
 
-    const emailSignUp = 'signUp';
     const emailData = {
       email: newUser.email,
       password: randomPassword,
     };
-    await this.generalFunctions.EmailNotification(emailData, emailSignUp);
+    await this.generalFunctions.EmailNotification(
+      emailData,
+      emailTypes.sign_up,
+    );
 
     return newUser;
   }
@@ -102,7 +109,9 @@ export class UserController {
   @response(200, {
     description: 'User change password',
   })
-  async changePassword(@requestBody() credentials: changePasswordCredentials): Promise<Boolean> {
+  async changePassword(
+    @requestBody() credentials: changePasswordCredentials,
+  ): Promise<Boolean> {
     let user = await this.authenticationService.IdentifyUser(
       credentials.username,
       credentials.currentPassword,
@@ -110,15 +119,43 @@ export class UserController {
     if (!user) {
       throw new HttpErrors.Unauthorized('Username or password incorrect');
     } else {
-      await this.authenticationService.changePassword(user, credentials.newPassword);
-      const emailChangePassword = 'change-password';
-      const emailData = {
-        email: user.email
-      };
-      await this.generalFunctions.EmailNotification(emailData, emailChangePassword);
-      return true
-    }
+      await this.authenticationService.changePassword(
+        user,
+        credentials.newPassword,
+      );
 
+      const emailData = {
+        email: user.email,
+      };
+      await this.generalFunctions.EmailNotification(
+        emailData,
+        emailTypes.change_password,
+      );
+      return true;
+    }
+  }
+
+  @post('/reset-password')
+  @response(200, {
+    description: 'User reset password',
+  })
+  async resetPassword(@requestBody() credentials: resetPasswordCredentials) {
+    const newPassword = await this.authenticationService.resetPassword(
+      credentials.username,
+    );
+
+    if (!newPassword) throw new HttpErrors.BadRequest();
+
+    const emailData = {
+      email: credentials.username,
+      password: newPassword,
+    };
+    this.generalFunctions.EmailNotification(
+      emailData,
+      emailTypes.reset_password,
+    );
+
+    return true;
   }
 
   @get('/users/count')

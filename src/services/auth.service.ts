@@ -1,4 +1,4 @@
-import { /* inject, */ BindingScope, injectable, service} from '@loopback/core';
+import {/* inject, */ BindingScope, injectable, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {jwt as jwtKeys} from '../config/index.config';
@@ -14,7 +14,7 @@ export class AuthService {
     public userRepository: UserRepository,
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
-  ) { }
+  ) {}
 
   GenerateToken(user: User): string {
     let token = jwt.sign(
@@ -56,7 +56,9 @@ export class AuthService {
 
   async changePassword(user: User, newPassword: string): Promise<Boolean> {
     if (user) {
-      let newEncryptPassword = this.generalFunctions.EncryptPassword(newPassword);
+      let newEncryptPassword = this.generalFunctions.EncryptPassword(
+        newPassword,
+      );
       user.password = newEncryptPassword;
       await this.userRepository.updateById(user.id, user);
       return true;
@@ -64,5 +66,28 @@ export class AuthService {
     return false;
   }
 
+  async resetPassword(email: string): Promise<boolean | string> {
+    if (email) {
+      const user = await this.userRepository.findOne({
+        where: {
+          email,
+        },
+      });
 
+      if (!user) throw new HttpErrors.BadRequest();
+
+      const newPassword = this.generalFunctions.GenerateRandomPassword();
+      const encryptPassword = this.generalFunctions.EncryptPassword(
+        newPassword,
+      );
+
+      user.password = encryptPassword;
+
+      await this.userRepository.updateById(user.id, user);
+
+      return newPassword;
+    }
+
+    return false;
+  }
 }

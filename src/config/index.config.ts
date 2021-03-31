@@ -26,4 +26,10 @@ const roles = {
   seller: 2,
 };
 
-export {mongodb, sendgrid, jwt, roles};
+const emailTypes = {
+  sign_up: 'signUp',
+  change_password: 'change-password',
+  reset_password: 'reset-password',
+};
+
+export {mongodb, sendgrid, jwt, roles, emailTypes};
