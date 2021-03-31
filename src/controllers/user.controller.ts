@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -17,13 +17,13 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
-import {Credentials} from '../config/interfaces';
+import {changePasswordCredentials, Credentials} from '../config/interfaces';
 import {User} from '../models';
 import {
   adminAuthenticate,
-  sellerAuthenticate,
+  sellerAuthenticate
 } from '../providers/auth-strategy.provider';
 import {UserRepository} from '../repositories';
 import {AuthService} from '../services';
@@ -37,7 +37,7 @@ export class UserController {
     public generalFunctions: GeneralFunctionsService,
     @service(AuthService)
     public authenticationService: AuthService,
-  ) {}
+  ) { }
 
   @post('/users')
   @response(200, {
@@ -78,7 +78,7 @@ export class UserController {
     return newUser;
   }
 
-  @post('/users/login')
+  @post('/login')
   @response(200, {
     description: 'User login',
   })
@@ -97,6 +97,28 @@ export class UserController {
         token,
       };
     }
+  }
+  @post('/change-password')
+  @response(200, {
+    description: 'User change password',
+  })
+  async changePassword(@requestBody() credentials: changePasswordCredentials): Promise<Boolean> {
+    let user = await this.authenticationService.IdentifyUser(
+      credentials.username,
+      credentials.currentPassword,
+    );
+    if (!user) {
+      throw new HttpErrors.Unauthorized('Username or password incorrect');
+    } else {
+      await this.authenticationService.changePassword(user, credentials.newPassword);
+      const emailChangePassword = 'change-password';
+      const emailData = {
+        email: user.email
+      };
+      await this.generalFunctions.EmailNotification(emailData, emailChangePassword);
+      return true
+    }
+
   }
 
   @get('/users/count')

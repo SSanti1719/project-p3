@@ -1,4 +1,4 @@
-import {/* inject, */ BindingScope, injectable, service} from '@loopback/core';
+import { /* inject, */ BindingScope, injectable, service} from '@loopback/core';
 import {repository} from '@loopback/repository';
 import {HttpErrors} from '@loopback/rest';
 import {jwt as jwtKeys} from '../config/index.config';
@@ -14,7 +14,7 @@ export class AuthService {
     public userRepository: UserRepository,
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
-  ) {}
+  ) { }
 
   GenerateToken(user: User): string {
     let token = jwt.sign(
@@ -53,4 +53,16 @@ export class AuthService {
     }
     return false;
   }
+
+  async changePassword(user: User, newPassword: string): Promise<Boolean> {
+    if (user) {
+      let newEncryptPassword = this.generalFunctions.EncryptPassword(newPassword);
+      user.password = newEncryptPassword;
+      await this.userRepository.updateById(user.id, user);
+      return true;
+    }
+    return false;
+  }
+
+
 }

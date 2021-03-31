@@ -3,4 +3,12 @@ interface Credentials {
   password: string;
 }
 
-export {Credentials};
+interface changePasswordCredentials {
+  id: string;
+  username: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
+export {Credentials, changePasswordCredentials};
+
