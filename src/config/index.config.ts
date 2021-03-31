@@ -16,11 +16,14 @@ const sendgrid = {
 };
 console.log(sendgrid);
 
-
 const jwt = {
   secret_Key: process.env.JWT_SECRET_KEY,
-  expiration_time: process.env.JWT_EXPIRATION_TIME
-}
+  expiration_time: process.env.JWT_EXPIRATION_TIME,
+};
 
-export {mongodb, sendgrid, jwt};
+const roles = {
+  admin: 1,
+  seller: 2,
+};
 
+export {mongodb, sendgrid, jwt, roles};

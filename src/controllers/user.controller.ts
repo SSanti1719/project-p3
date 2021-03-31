@@ -1,11 +1,11 @@
-import {service} from '@loopback/core';
+import {intercept, service} from '@loopback/core';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
   del,
@@ -17,13 +17,18 @@ import {
   post,
   put,
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
 import {Credentials} from '../config/interfaces';
 import {User} from '../models';
+import {
+  adminAuthenticate,
+  sellerAuthenticate,
+} from '../providers/auth-strategy.provider';
 import {UserRepository} from '../repositories';
 import {AuthService} from '../services';
 import {GeneralFunctionsService} from '../services/general-functions.service';
+
 export class UserController {
   constructor(
     @repository(UserRepository)
@@ -31,8 +36,8 @@ export class UserController {
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
     @service(AuthService)
-    public authenticationService: AuthService
-  ) { }
+    public authenticationService: AuthService,
+  ) {}
 
   @post('/users')
   @response(200, {
@@ -75,12 +80,13 @@ export class UserController {
 
   @post('/users/login')
   @response(200, {
-    description: 'User login'
+    description: 'User login',
   })
-  async login(
-    @requestBody() credentials: Credentials
-  ): Promise<Object> {
-    let user = await this.authenticationService.IdentifyUser(credentials.username, credentials.password);
+  async login(@requestBody() credentials: Credentials): Promise<Object> {
+    let user = await this.authenticationService.IdentifyUser(
+      credentials.username,
+      credentials.password,
+    );
 
     if (!user) {
       throw new HttpErrors.Unauthorized('Username or password incorrect');
@@ -88,12 +94,13 @@ export class UserController {
       let token = this.authenticationService.GenerateToken(user);
       return {
         username: user.email,
-        token
-      }
+        token,
+      };
     }
   }
 
   @get('/users/count')
+  @intercept(adminAuthenticate)
   @response(200, {
     description: 'User model count',
     content: {'application/json': {schema: CountSchema}},
@@ -103,6 +110,7 @@ export class UserController {
   }
 
   @get('/users')
+  @intercept(sellerAuthenticate)
   @response(200, {
     description: 'Array of User model instances',
     content: {
