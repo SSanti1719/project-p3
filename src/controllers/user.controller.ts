@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -17,20 +17,20 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {emailTypes} from '../config/index.config';
 import {
   changePasswordCredentials,
   Credentials,
-  resetPasswordCredentials,
+  resetPasswordCredentials
 } from '../config/interfaces';
 import {User} from '../models';
 import {
   adminAuthenticate,
-  sellerAuthenticate,
+  sellerAuthenticate
 } from '../providers/auth-strategy.provider';
-import {UserRepository} from '../repositories';
+import {CityRepository, UserRepository} from '../repositories';
 import {AuthService} from '../services';
 import {GeneralFunctionsService} from '../services/general-functions.service';
 
@@ -38,11 +38,13 @@ export class UserController {
   constructor(
     @repository(UserRepository)
     public userRepository: UserRepository,
+    @repository(CityRepository)
+    public cityRepository: CityRepository,
     @service(GeneralFunctionsService)
     public generalFunctions: GeneralFunctionsService,
     @service(AuthService)
     public authenticationService: AuthService,
-  ) {}
+  ) { }
 
   @post('/users')
   @response(200, {
@@ -62,6 +64,8 @@ export class UserController {
     })
     user: Omit<User, 'id'>,
   ): Promise<User> {
+    if (!user.cityId || !(await this.cityRepository.findById(user.cityId))) throw new HttpErrors.BadRequest('CityId no valid');
+
     let randomPassword = this.generalFunctions.GenerateRandomPassword();
     let encryptPassword = this.generalFunctions.EncryptPassword(randomPassword);
 

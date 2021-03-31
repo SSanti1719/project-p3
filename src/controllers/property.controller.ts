@@ -4,27 +4,39 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
+  del, get,
   getModelSchemaRef,
-  patch,
+
+
+
+
+
+  HttpErrors, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Property} from '../models';
-import {PropertyRepository} from '../repositories';
+import {BlockRepository, PropertyRepository} from '../repositories';
 
 export class PropertyController {
   constructor(
     @repository(PropertyRepository)
-    public propertyRepository : PropertyRepository,
-  ) {}
+    public propertyRepository: PropertyRepository,
+    @repository(BlockRepository)
+    public blockRepository: BlockRepository,
+  ) { }
 
   @post('/properties')
   @response(200, {
@@ -44,6 +56,7 @@ export class PropertyController {
     })
     property: Omit<Property, 'id'>,
   ): Promise<Property> {
+    if (!property.blockId || !(await this.blockRepository.findById(property.blockId))) throw new HttpErrors.BadRequest('BlockId no valid');
     return this.propertyRepository.create(property);
   }
 

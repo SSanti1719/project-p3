@@ -4,27 +4,39 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
-  post,
-  param,
-  get,
+  del, get,
   getModelSchemaRef,
-  patch,
+
+
+
+
+
+  HttpErrors, param,
+
+
+  patch, post,
+
+
+
+
   put,
-  del,
+
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {Payment} from '../models';
-import {PaymentRepository} from '../repositories';
+import {PaymentRepository, RequestRepository} from '../repositories';
 
 export class PaymentController {
   constructor(
     @repository(PaymentRepository)
-    public paymentRepository : PaymentRepository,
-  ) {}
+    public paymentRepository: PaymentRepository,
+    @repository(RequestRepository)
+    public requestRepository: RequestRepository,
+  ) { }
 
   @post('/payments')
   @response(200, {
@@ -44,6 +56,7 @@ export class PaymentController {
     })
     payment: Omit<Payment, 'id'>,
   ): Promise<Payment> {
+    if (!payment.requestId || !(await this.requestRepository.findById(payment.requestId))) throw new HttpErrors.BadRequest('RequestId no valid');
     return this.paymentRepository.create(payment);
   }
 
