@@ -7,23 +7,25 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
 import {City} from '../models';
-import {CityRepository} from '../repositories';
+import {CityRepository, CountryRepository} from '../repositories';
 
 export class CityController {
   constructor(
     @repository(CityRepository)
-    public cityRepository : CityRepository,
+    public cityRepository: CityRepository,
+    @repository(CountryRepository) public countryRepository: CountryRepository,
   ) {}
 
   @post('/cities')
@@ -44,6 +46,12 @@ export class CityController {
     })
     city: Omit<City, 'id'>,
   ): Promise<City> {
+    if (
+      !city.countryId ||
+      !(await this.countryRepository.findById(city.countryId))
+    )
+      throw new HttpErrors.BadRequest('countryId no valid');
+
     return this.cityRepository.create(city);
   }
 
@@ -52,9 +60,7 @@ export class CityController {
     description: 'City model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(City) where?: Where<City>,
-  ): Promise<Count> {
+  async count(@param.where(City) where?: Where<City>): Promise<Count> {
     return this.cityRepository.count(where);
   }
 
@@ -70,9 +76,7 @@ export class CityController {
       },
     },
   })
-  async find(
-    @param.filter(City) filter?: Filter<City>,
-  ): Promise<City[]> {
+  async find(@param.filter(City) filter?: Filter<City>): Promise<City[]> {
     return this.cityRepository.find(filter);
   }
 
@@ -106,7 +110,7 @@ export class CityController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(City, {exclude: 'where'}) filter?: FilterExcludingWhere<City>
+    @param.filter(City, {exclude: 'where'}) filter?: FilterExcludingWhere<City>,
   ): Promise<City> {
     return this.cityRepository.findById(id, filter);
   }

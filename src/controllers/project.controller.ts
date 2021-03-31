@@ -7,23 +7,25 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
 import {Project} from '../models';
-import {ProjectRepository} from '../repositories';
+import {CityRepository, ProjectRepository} from '../repositories';
 
 export class ProjectController {
   constructor(
     @repository(ProjectRepository)
-    public projectRepository : ProjectRepository,
+    public projectRepository: ProjectRepository,
+    @repository(CityRepository) public cityRepository: CityRepository,
   ) {}
 
   @post('/projects')
@@ -44,6 +46,12 @@ export class ProjectController {
     })
     project: Omit<Project, 'id'>,
   ): Promise<Project> {
+    if (
+      !project.cityId ||
+      !(await this.cityRepository.findById(project.cityId))
+    )
+      throw new HttpErrors.BadRequest('cityId no valid');
+
     return this.projectRepository.create(project);
   }
 
@@ -52,9 +60,7 @@ export class ProjectController {
     description: 'Project model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Project) where?: Where<Project>,
-  ): Promise<Count> {
+  async count(@param.where(Project) where?: Where<Project>): Promise<Count> {
     return this.projectRepository.count(where);
   }
 
@@ -106,7 +112,8 @@ export class ProjectController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Project, {exclude: 'where'}) filter?: FilterExcludingWhere<Project>
+    @param.filter(Project, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Project>,
   ): Promise<Project> {
     return this.projectRepository.findById(id, filter);
   }

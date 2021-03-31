@@ -7,23 +7,33 @@ import {
   Where,
 } from '@loopback/repository';
 import {
-  post,
-  param,
+  del,
   get,
   getModelSchemaRef,
+  HttpErrors,
+  param,
   patch,
+  post,
   put,
-  del,
   requestBody,
   response,
 } from '@loopback/rest';
 import {Request} from '../models';
-import {RequestRepository} from '../repositories';
+import {
+  ClientRepository,
+  PropertyRepository,
+  RequestRepository,
+  UserRepository,
+} from '../repositories';
 
 export class RequestController {
   constructor(
     @repository(RequestRepository)
-    public requestRepository : RequestRepository,
+    public requestRepository: RequestRepository,
+    @repository(PropertyRepository)
+    public propertyRepository: PropertyRepository,
+    @repository(UserRepository) public userRepository: UserRepository,
+    @repository(ClientRepository) public clientRepository: ClientRepository,
   ) {}
 
   @post('/requests')
@@ -44,6 +54,18 @@ export class RequestController {
     })
     request: Omit<Request, 'id'>,
   ): Promise<Request> {
+    if (
+      !request.propertyId ||
+      !request.userId ||
+      !request.clientId ||
+      !(await this.propertyRepository.findById(request.propertyId)) ||
+      !(await this.userRepository.findById(request.userId)) ||
+      !(await this.clientRepository.findById(request.clientId))
+    )
+      throw new HttpErrors.BadRequest(
+        'propertyId or userId or clientId no valid',
+      );
+
     return this.requestRepository.create(request);
   }
 
@@ -52,9 +74,7 @@ export class RequestController {
     description: 'Request model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Request) where?: Where<Request>,
-  ): Promise<Count> {
+  async count(@param.where(Request) where?: Where<Request>): Promise<Count> {
     return this.requestRepository.count(where);
   }
 
@@ -106,7 +126,8 @@ export class RequestController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Request, {exclude: 'where'}) filter?: FilterExcludingWhere<Request>
+    @param.filter(Request, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Request>,
   ): Promise<Request> {
     return this.requestRepository.findById(id, filter);
   }
