@@ -1,7 +1,14 @@
-import {Entity, model, property, belongsTo, hasMany} from '@loopback/repository';
-import {Property} from './property.model';
+import {
+  belongsTo,
+  Entity,
+  hasMany,
+  model,
+  property,
+} from '@loopback/repository';
+import {requestStatus} from '../config/index.config';
 import {Client} from './client.model';
 import {Payment} from './payment.model';
+import {Property} from './property.model';
 import {User} from './user.model';
 
 @model()
@@ -21,7 +28,7 @@ export class Request extends Entity {
 
   @property({
     type: 'string',
-    required: true,
+    default: requestStatus.review,
   })
   status: string;
 

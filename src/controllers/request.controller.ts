@@ -18,6 +18,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {requestStatus} from '../config/index.config';
 import {Request} from '../models';
 import {
   ClientRepository,
@@ -65,6 +66,8 @@ export class RequestController {
       throw new HttpErrors.BadRequest(
         'propertyId or userId or clientId no valid',
       );
+
+    request.status = requestStatus.review;
 
     return this.requestRepository.create(request);
   }

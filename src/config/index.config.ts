@@ -32,4 +32,10 @@ const emailTypes = {
   reset_password: 'reset-password',
 };
 
-export {mongodb, sendgrid, jwt, roles, emailTypes};
+const requestStatus = {
+  review: 'review',
+  accepted: 'accepted',
+  rejected: 'rejected',
+};
+
+export {mongodb, sendgrid, jwt, roles, emailTypes, requestStatus};
