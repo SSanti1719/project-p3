@@ -150,6 +150,12 @@ export class RequestController {
     })
     request: Request,
   ): Promise<void> {
+    if (
+      request.status !== requestStatus.accepted &&
+      request.status !== requestStatus.rejected &&
+      request.status !== requestStatus.review
+    )
+      throw new HttpErrors.BadRequest('request status no valid');
     await this.requestRepository.updateById(id, request);
   }
 
@@ -161,6 +167,12 @@ export class RequestController {
     @param.path.string('id') id: string,
     @requestBody() request: Request,
   ): Promise<void> {
+    if (
+      request.status !== requestStatus.accepted &&
+      request.status !== requestStatus.rejected &&
+      request.status !== requestStatus.review
+    )
+      throw new HttpErrors.BadRequest('request status no valid');
     await this.requestRepository.replaceById(id, request);
   }
 
