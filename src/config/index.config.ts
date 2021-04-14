@@ -14,11 +14,16 @@ const sendgrid = {
   key: process.env.SENDGRID_API_KEY,
   email: process.env.SENDGRID_EMAIL,
 };
-console.log(sendgrid);
 
 const jwt = {
   secret_Key: process.env.JWT_SECRET_KEY,
   expiration_time: process.env.JWT_EXPIRATION_TIME,
+};
+
+const cloudinary = {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 };
 
 const roles = {
@@ -38,4 +43,4 @@ const requestStatus = {
   rejected: 'rejected',
 };
 
-export {mongodb, sendgrid, jwt, roles, emailTypes, requestStatus};
+export {mongodb, sendgrid, jwt, roles, emailTypes, requestStatus, cloudinary};

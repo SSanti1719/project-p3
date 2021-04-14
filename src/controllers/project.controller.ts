@@ -1,3 +1,4 @@
+import {inject, intercept} from '@loopback/context';
 import {
   Count,
   CountSchema,
@@ -15,28 +16,21 @@ import {
   patch,
   post,
   put,
+  Request,
   requestBody,
   response,
+  RestBindings,
 } from '@loopback/rest';
+import path from 'path';
+import {filesInterceptor} from '../middleware/multer';
 import {Project} from '../models';
 import {CityRepository, ProjectRepository} from '../repositories';
+import {cloudinary} from '../services/cloudinary.service';
 
-export class ProjectController {
-  constructor(
-    @repository(ProjectRepository)
-    public projectRepository: ProjectRepository,
-    @repository(CityRepository) public cityRepository: CityRepository,
-  ) {}
-
-  @post('/projects')
-  @response(200, {
-    description: 'Project model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Project)}},
-  })
-  async create(
-    @requestBody({
+/*
+ @requestBody({
       content: {
-        'application/json': {
+        'multipart/form-data': {
           schema: getModelSchemaRef(Project, {
             title: 'NewProject',
             exclude: ['id'],
@@ -45,14 +39,54 @@ export class ProjectController {
       },
     })
     project: Omit<Project, 'id'>,
-  ): Promise<Project> {
-    if (
-      !project.cityId ||
-      !(await this.cityRepository.findById(project.cityId))
-    )
+*/
+export class ProjectController {
+  constructor(
+    @repository(ProjectRepository)
+    public projectRepository: ProjectRepository,
+    @repository(CityRepository) public cityRepository: CityRepository,
+    @inject(RestBindings.Http.REQUEST) private req: Request,
+  ) {}
+
+  @post('/projects')
+  @intercept(filesInterceptor)
+  @response(200, {
+    description: 'Project model instance',
+    content: {'application/json': {schema: getModelSchemaRef(Project)}},
+  })
+  async create(): Promise<Project> {
+    const {code, name, description, cityId} = this.req.body;
+    const {file} = this.req;
+
+    if (!code || !name || !description || !cityId || !file)
+      throw new HttpErrors.BadRequest('Incomplete data');
+
+    if (!(await this.cityRepository.findById(cityId)))
       throw new HttpErrors.BadRequest('cityId no valid');
 
-    return this.projectRepository.create(project);
+    const uploadedImage: cloudinary.UploadApiResponse = await cloudinary.v2.uploader.upload(
+      file.path,
+      {
+        public_id: `projects/${path.basename(
+          file.path,
+          path.extname(file.path),
+        )}`,
+      },
+    );
+
+    const image = uploadedImage.secure_url;
+
+    const project = await this.projectRepository.create({
+      code,
+      name,
+      description,
+      cityId,
+      image,
+    });
+
+    /*return this.projectRepository.create(project);*/
+
+    return project;
   }
 
   @get('/projects/count')

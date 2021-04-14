@@ -56,6 +56,7 @@
     "@loopback/rest-explorer": "^3.1.0",
     "@loopback/service-proxy": "^3.0.7",
     "@sendgrid/mail": "^7.4.2",
+    "cloudinary": "^1.25.1",
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
     "generate-password": "^1.6.0",
@@ -63,19 +64,23 @@
     "jsonwebtoken": "^8.5.1",
     "loopback-connector-mongodb": "^5.5.0",
     "morgan": "^1.10.0",
+    "multer": "^1.4.2",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "tslib": "^2.0.0",
-    "twilio": "^3.59.0"
+    "twilio": "^3.59.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "@loopback/build": "^6.2.9",
     "@loopback/eslint-config": "^10.0.5",
     "@loopback/testlab": "^3.2.12",
     "@types/morgan": "^1.9.2",
+    "@types/multer": "^1.4.5",
     "@types/node": "^10.17.51",
     "@types/passport": "^1.0.6",
     "@types/passport-jwt": "^3.0.5",
+    "@types/uuid": "^8.3.0",
     "eslint": "^7.18.0",
     "source-map-support": "^0.5.19",
     "typescript": "~4.1.3"
