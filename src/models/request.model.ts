@@ -21,6 +21,12 @@ export class Request extends Entity {
   id?: string;
 
   @property({
+    type: 'string',
+    required: true,
+  })
+  code: string;
+
+  @property({
     type: 'date',
     required: true,
   })

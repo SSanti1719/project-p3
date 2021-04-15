@@ -1,36 +1,38 @@
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
-  del, get,
-  getModelSchemaRef, HttpErrors, param,
-
-
-  patch, post,
-
-
-
-
+  del,
+  get,
+  getModelSchemaRef,
+  HttpErrors,
+  param,
+  patch,
+  post,
   put,
-
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
+import {codeTypes} from '../config/index.config';
 import {Block} from '../models';
 import {BlockRepository, ProjectRepository} from '../repositories';
+import {GeneralFunctionsService} from '../services';
 
 export class BlockController {
   constructor(
     @repository(BlockRepository)
     public blockRepository: BlockRepository,
     @repository(ProjectRepository)
-    public projectRepository: ProjectRepository
-  ) { }
+    public projectRepository: ProjectRepository,
+    @service(GeneralFunctionsService)
+    private generalFunctions: GeneralFunctionsService,
+  ) {}
 
   @post('/blocks')
   @response(200, {
@@ -43,14 +45,20 @@ export class BlockController {
         'application/json': {
           schema: getModelSchemaRef(Block, {
             title: 'NewBlock',
-            exclude: ['id'],
+            exclude: ['id', 'code'],
           }),
         },
       },
     })
     block: Omit<Block, 'id'>,
   ): Promise<Block> {
-    if (!block.projectId || !(await this.projectRepository.findById(block.projectId))) throw new HttpErrors.BadRequest('ProjectId no valid');
+    if (
+      !block.projectId ||
+      !(await this.projectRepository.findById(block.projectId))
+    )
+      throw new HttpErrors.BadRequest('ProjectId no valid');
+
+    block.code = this.generalFunctions.generateCode(codeTypes.block);
 
     return this.blockRepository.create(block);
   }
@@ -60,9 +68,7 @@ export class BlockController {
     description: 'Block model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Block) where?: Where<Block>,
-  ): Promise<Count> {
+  async count(@param.where(Block) where?: Where<Block>): Promise<Count> {
     return this.blockRepository.count(where);
   }
 
@@ -78,9 +84,7 @@ export class BlockController {
       },
     },
   })
-  async find(
-    @param.filter(Block) filter?: Filter<Block>,
-  ): Promise<Block[]> {
+  async find(@param.filter(Block) filter?: Filter<Block>): Promise<Block[]> {
     return this.blockRepository.find(filter);
   }
 
@@ -114,7 +118,8 @@ export class BlockController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Block, {exclude: 'where'}) filter?: FilterExcludingWhere<Block>
+    @param.filter(Block, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Block>,
   ): Promise<Block> {
     return this.blockRepository.findById(id, filter);
   }

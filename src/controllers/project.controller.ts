@@ -1,4 +1,5 @@
 import {inject, intercept} from '@loopback/context';
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -22,9 +23,15 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import path from 'path';
+import {codeTypes} from '../config/index.config';
 import {filesInterceptor} from '../middleware/multer';
 import {Project} from '../models';
-import {CityRepository, ProjectRepository} from '../repositories';
+import {
+  CityRepository,
+  CountryRepository,
+  ProjectRepository,
+} from '../repositories';
+import {GeneralFunctionsService} from '../services';
 import {cloudinary} from '../services/cloudinary.service';
 
 /*
@@ -44,8 +51,11 @@ export class ProjectController {
   constructor(
     @repository(ProjectRepository)
     public projectRepository: ProjectRepository,
-    @repository(CityRepository) public cityRepository: CityRepository,
+    @repository(CityRepository) private cityRepository: CityRepository,
+    @repository(CountryRepository) private countryRepository: CountryRepository,
     @inject(RestBindings.Http.REQUEST) private req: Request,
+    @service(GeneralFunctionsService)
+    private generalFunctions: GeneralFunctionsService,
   ) {}
 
   @post('/projects')
@@ -55,10 +65,10 @@ export class ProjectController {
     content: {'application/json': {schema: getModelSchemaRef(Project)}},
   })
   async create(): Promise<Project> {
-    const {code, name, description, cityId} = this.req.body;
+    const {name, description, cityId} = this.req.body;
     const {file} = this.req;
 
-    if (!code || !name || !description || !cityId || !file)
+    if (!name || !description || !cityId || !file)
       throw new HttpErrors.BadRequest('Incomplete data');
 
     if (!(await this.cityRepository.findById(cityId)))
@@ -75,6 +85,7 @@ export class ProjectController {
     );
 
     const image = uploadedImage.secure_url;
+    const code = this.generalFunctions.generateCode(codeTypes.project);
 
     const project = await this.projectRepository.create({
       code,
@@ -83,8 +94,6 @@ export class ProjectController {
       cityId,
       image,
     });
-
-    /*return this.projectRepository.create(project);*/
 
     return project;
   }
@@ -114,6 +123,27 @@ export class ProjectController {
     @param.filter(Project) filter?: Filter<Project>,
   ): Promise<Project[]> {
     return this.projectRepository.find(filter);
+  }
+
+  @get('/home-projects')
+  async getHomeProjects(): Promise<any[]> {
+    const projects = await this.projectRepository.find();
+
+    const homeProjectsList = Promise.all(
+      projects.map(async project => {
+        const city = await this.cityRepository.findById(project.cityId);
+        const country = await this.countryRepository.findById(city.countryId);
+
+        return {
+          ...project,
+          cityName: city.name,
+          countryId: country.id,
+          countryName: country.name,
+        };
+      }),
+    );
+
+    return await homeProjectsList;
   }
 
   @patch('/projects')

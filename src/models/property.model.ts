@@ -1,6 +1,12 @@
-import {Entity, model, property, hasMany, belongsTo} from '@loopback/repository';
-import {Request} from './request.model';
+import {
+  belongsTo,
+  Entity,
+  hasMany,
+  model,
+  property,
+} from '@loopback/repository';
 import {Block} from './block.model';
+import {Request} from './request.model';
 
 @model()
 export class Property extends Entity {
@@ -21,13 +27,19 @@ export class Property extends Entity {
     type: 'string',
     required: true,
   })
-  description: string;
+  number: string;
 
   @property({
     type: 'string',
     required: true,
   })
-  value: string;
+  description: string;
+
+  @property({
+    type: 'number',
+    required: true,
+  })
+  value: number;
 
   @property({
     type: 'string',

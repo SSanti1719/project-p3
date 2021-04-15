@@ -43,4 +43,27 @@ const requestStatus = {
   rejected: 'rejected',
 };
 
-export {mongodb, sendgrid, jwt, roles, emailTypes, requestStatus, cloudinary};
+const codeTypes = {
+  city: 'CT',
+  project: 'PJ',
+  block: 'BK',
+  property: 'PT',
+  request: 'RQ',
+};
+
+const propertyStatus = {
+  available: 'available',
+  sold: 'sold',
+};
+
+export {
+  mongodb,
+  sendgrid,
+  jwt,
+  roles,
+  emailTypes,
+  requestStatus,
+  cloudinary,
+  codeTypes,
+  propertyStatus,
+};

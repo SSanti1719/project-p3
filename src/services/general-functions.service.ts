@@ -57,4 +57,17 @@ export class GeneralFunctionsService {
         console.error(error);
       });
   }
+
+  generateCode(type: string) {
+    const random = generator.generate({
+      length: 8,
+      numbers: true,
+      uppercase: true,
+      lowercase: false,
+    });
+
+    const code = `${type}-${random}`;
+
+    return code;
+  }
 }

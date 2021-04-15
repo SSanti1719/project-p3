@@ -1,34 +1,28 @@
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
-  del, get,
+  del,
+  get,
   getModelSchemaRef,
-
-
-
-
-
-  HttpErrors, param,
-
-
-  patch, post,
-
-
-
-
+  HttpErrors,
+  param,
+  patch,
+  post,
   put,
-
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
+import {codeTypes, propertyStatus} from '../config/index.config';
 import {Property} from '../models';
 import {BlockRepository, PropertyRepository} from '../repositories';
+import {GeneralFunctionsService} from '../services';
 
 export class PropertyController {
   constructor(
@@ -36,7 +30,9 @@ export class PropertyController {
     public propertyRepository: PropertyRepository,
     @repository(BlockRepository)
     public blockRepository: BlockRepository,
-  ) { }
+    @service(GeneralFunctionsService)
+    private generalFunctions: GeneralFunctionsService,
+  ) {}
 
   @post('/properties')
   @response(200, {
@@ -49,14 +45,22 @@ export class PropertyController {
         'application/json': {
           schema: getModelSchemaRef(Property, {
             title: 'NewProperty',
-            exclude: ['id'],
+            exclude: ['id', 'code', 'status'],
           }),
         },
       },
     })
     property: Omit<Property, 'id'>,
   ): Promise<Property> {
-    if (!property.blockId || !(await this.blockRepository.findById(property.blockId))) throw new HttpErrors.BadRequest('BlockId no valid');
+    if (
+      !property.blockId ||
+      !(await this.blockRepository.findById(property.blockId))
+    )
+      throw new HttpErrors.BadRequest('BlockId no valid');
+
+    property.code = this.generalFunctions.generateCode(codeTypes.property);
+    property.status = propertyStatus.available;
+
     return this.propertyRepository.create(property);
   }
 
@@ -65,9 +69,7 @@ export class PropertyController {
     description: 'Property model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Property) where?: Where<Property>,
-  ): Promise<Count> {
+  async count(@param.where(Property) where?: Where<Property>): Promise<Count> {
     return this.propertyRepository.count(where);
   }
 
@@ -119,7 +121,8 @@ export class PropertyController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Property, {exclude: 'where'}) filter?: FilterExcludingWhere<Property>
+    @param.filter(Property, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Property>,
   ): Promise<Property> {
     return this.propertyRepository.findById(id, filter);
   }

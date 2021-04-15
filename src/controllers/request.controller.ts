@@ -1,3 +1,4 @@
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -18,7 +19,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {requestStatus} from '../config/index.config';
+import {codeTypes, requestStatus} from '../config/index.config';
 import {Request} from '../models';
 import {
   ClientRepository,
@@ -26,6 +27,7 @@ import {
   RequestRepository,
   UserRepository,
 } from '../repositories';
+import {GeneralFunctionsService} from '../services';
 
 export class RequestController {
   constructor(
@@ -35,6 +37,8 @@ export class RequestController {
     public propertyRepository: PropertyRepository,
     @repository(UserRepository) public userRepository: UserRepository,
     @repository(ClientRepository) public clientRepository: ClientRepository,
+    @service(GeneralFunctionsService)
+    private generalFunctions: GeneralFunctionsService,
   ) {}
 
   @post('/requests')
@@ -48,7 +52,7 @@ export class RequestController {
         'application/json': {
           schema: getModelSchemaRef(Request, {
             title: 'NewRequest',
-            exclude: ['id'],
+            exclude: ['id', 'code'],
           }),
         },
       },
@@ -66,6 +70,8 @@ export class RequestController {
       throw new HttpErrors.BadRequest(
         'propertyId or userId or clientId no valid',
       );
+
+    request.code = this.generalFunctions.generateCode(codeTypes.request);
 
     request.status = requestStatus.review;
 

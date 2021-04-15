@@ -1,3 +1,4 @@
+import {service} from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -18,14 +19,18 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
+import {codeTypes} from '../config/index.config';
 import {City} from '../models';
 import {CityRepository, CountryRepository} from '../repositories';
+import {GeneralFunctionsService} from '../services';
 
 export class CityController {
   constructor(
     @repository(CityRepository)
     public cityRepository: CityRepository,
     @repository(CountryRepository) public countryRepository: CountryRepository,
+    @service(GeneralFunctionsService)
+    private generalFunctions: GeneralFunctionsService,
   ) {}
 
   @post('/cities')
@@ -39,7 +44,7 @@ export class CityController {
         'application/json': {
           schema: getModelSchemaRef(City, {
             title: 'NewCity',
-            exclude: ['id'],
+            exclude: ['id', 'code'],
           }),
         },
       },
@@ -51,6 +56,8 @@ export class CityController {
       !(await this.countryRepository.findById(city.countryId))
     )
       throw new HttpErrors.BadRequest('countryId no valid');
+
+    city.code = this.generalFunctions.generateCode(codeTypes.city);
 
     return this.cityRepository.create(city);
   }
