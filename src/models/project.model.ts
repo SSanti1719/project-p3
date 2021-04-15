@@ -1,4 +1,10 @@
-import {Entity, model, property, hasMany, belongsTo} from '@loopback/repository';
+import {
+  belongsTo,
+  Entity,
+  hasMany,
+  model,
+  property,
+} from '@loopback/repository';
 import {Block} from './block.model';
 import {City} from './city.model';
 
@@ -33,6 +39,12 @@ export class Project extends Entity {
     type: 'string',
   })
   image?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  image_public_id: string;
 
   @hasMany(() => Block)
   blocks: Block[];

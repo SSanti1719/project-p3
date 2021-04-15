@@ -1,7 +1,14 @@
-import {Entity, model, property, hasMany, belongsTo, hasOne} from '@loopback/repository';
-import {Request} from './request.model';
+import {
+  belongsTo,
+  Entity,
+  hasMany,
+  hasOne,
+  model,
+  property,
+} from '@loopback/repository';
 import {City} from './city.model';
 import {Finances} from './finances.model';
+import {Request} from './request.model';
 
 @model()
 export class Client extends Entity {
@@ -40,6 +47,12 @@ export class Client extends Entity {
     type: 'string',
   })
   image?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  image_public_id: string;
 
   @property({
     type: 'number',

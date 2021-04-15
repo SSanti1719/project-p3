@@ -1,34 +1,32 @@
+import {inject, intercept} from '@loopback/context';
 import {
   Count,
   CountSchema,
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
-  del, get,
+  del,
+  get,
   getModelSchemaRef,
-
-
-
-
-
-  HttpErrors, param,
-
-
-  patch, post,
-
-
-
-
+  HttpErrors,
+  param,
+  patch,
+  post,
   put,
-
+  Request,
   requestBody,
-  response
+  response,
+  RestBindings,
 } from '@loopback/rest';
+import path from 'path';
+import {cloudFilesRoutes} from '../config/index.config';
+import {filesInterceptor} from '../middleware/multer';
 import {Client} from '../models';
 import {CityRepository, ClientRepository} from '../repositories';
+import {cloudinary} from '../services/cloudinary.service';
 
 export class ClientController {
   constructor(
@@ -36,28 +34,69 @@ export class ClientController {
     public clientRepository: ClientRepository,
     @repository(CityRepository)
     public cityRepository: CityRepository,
-  ) { }
+    @inject(RestBindings.Http.REQUEST) private req: Request,
+  ) {}
 
   @post('/clients')
+  @intercept(filesInterceptor)
   @response(200, {
     description: 'Client model instance',
     content: {'application/json': {schema: getModelSchemaRef(Client)}},
   })
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Client, {
-            title: 'NewClient',
-            exclude: ['id'],
-          }),
-        },
+  async create(): Promise<Client> {
+    const {
+      name,
+      lastname,
+      document,
+      birthday,
+      phone,
+      email,
+      adress,
+      cityId,
+    } = this.req.body;
+
+    const {file} = this.req;
+
+    if (
+      !name ||
+      !lastname ||
+      !document ||
+      !birthday ||
+      !phone ||
+      !email ||
+      !adress ||
+      !file
+    )
+      throw new HttpErrors.BadRequest('Incomplete Data');
+
+    if (!cityId || !(await this.cityRepository.findById(cityId)))
+      throw new HttpErrors.BadRequest('CityId no valid');
+
+    const uploadedImage: cloudinary.UploadApiResponse = await cloudinary.v2.uploader.upload(
+      file.path,
+      {
+        public_id: `${cloudFilesRoutes.clients}/${path.basename(
+          file.path,
+          path.extname(file.path),
+        )}`,
       },
-    })
-    client: Omit<Client, 'id'>,
-  ): Promise<Client> {
-    if (!client.cityId || !(await this.cityRepository.findById(client.cityId))) throw new HttpErrors.BadRequest('CityId no valid');
-    return this.clientRepository.create(client);
+    );
+
+    const image = uploadedImage.secure_url;
+    const image_public_id = uploadedImage.public_id;
+
+    return this.clientRepository.create({
+      name,
+      lastname,
+      document,
+      birthday,
+      phone,
+      email,
+      adress,
+      cityId,
+      image,
+      image_public_id,
+    });
   }
 
   @get('/clients/count')
@@ -65,9 +104,7 @@ export class ClientController {
     description: 'Client model count',
     content: {'application/json': {schema: CountSchema}},
   })
-  async count(
-    @param.where(Client) where?: Where<Client>,
-  ): Promise<Count> {
+  async count(@param.where(Client) where?: Where<Client>): Promise<Count> {
     return this.clientRepository.count(where);
   }
 
@@ -83,9 +120,7 @@ export class ClientController {
       },
     },
   })
-  async find(
-    @param.filter(Client) filter?: Filter<Client>,
-  ): Promise<Client[]> {
+  async find(@param.filter(Client) filter?: Filter<Client>): Promise<Client[]> {
     return this.clientRepository.find(filter);
   }
 
@@ -119,7 +154,8 @@ export class ClientController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Client, {exclude: 'where'}) filter?: FilterExcludingWhere<Client>
+    @param.filter(Client, {exclude: 'where'})
+    filter?: FilterExcludingWhere<Client>,
   ): Promise<Client> {
     return this.clientRepository.findById(id, filter);
   }

@@ -23,7 +23,7 @@ import {
   RestBindings,
 } from '@loopback/rest';
 import path from 'path';
-import {codeTypes} from '../config/index.config';
+import {cloudFilesRoutes, codeTypes} from '../config/index.config';
 import {filesInterceptor} from '../middleware/multer';
 import {Project} from '../models';
 import {
@@ -77,7 +77,7 @@ export class ProjectController {
     const uploadedImage: cloudinary.UploadApiResponse = await cloudinary.v2.uploader.upload(
       file.path,
       {
-        public_id: `projects/${path.basename(
+        public_id: `${cloudFilesRoutes.projects}/${path.basename(
           file.path,
           path.extname(file.path),
         )}`,
@@ -85,6 +85,7 @@ export class ProjectController {
     );
 
     const image = uploadedImage.secure_url;
+    const image_public_id = uploadedImage.public_id;
     const code = this.generalFunctions.generateCode(codeTypes.project);
 
     const project = await this.projectRepository.create({
@@ -93,6 +94,7 @@ export class ProjectController {
       description,
       cityId,
       image,
+      image_public_id,
     });
 
     return project;

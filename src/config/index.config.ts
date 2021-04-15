@@ -56,6 +56,11 @@ const propertyStatus = {
   sold: 'sold',
 };
 
+const cloudFilesRoutes = {
+  projects: 'inmobi/projects',
+  clients: 'inmobi/clients',
+};
+
 export {
   mongodb,
   sendgrid,
@@ -66,4 +71,5 @@ export {
   cloudinary,
   codeTypes,
   propertyStatus,
+  cloudFilesRoutes,
 };
