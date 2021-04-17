@@ -19,7 +19,7 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {codeTypes, requestStatus} from '../config/index.config';
+import {codeTypes, emailTypes, requestStatus} from '../config/index.config';
 import {Request} from '../models';
 import {
   ClientRepository,
@@ -59,14 +59,16 @@ export class RequestController {
     })
     request: Omit<Request, 'id'>,
   ): Promise<Request> {
-    if (
-      !request.propertyId ||
-      !request.userId ||
-      !request.clientId ||
-      !(await this.propertyRepository.findById(request.propertyId)) ||
-      !(await this.userRepository.findById(request.userId)) ||
-      !(await this.clientRepository.findById(request.clientId))
-    )
+    if (!request.propertyId || !request.userId || !request.clientId)
+      throw new HttpErrors.BadRequest(
+        'propertyId , userId , clientId is required',
+      );
+
+    const client = await this.clientRepository.findById(request.clientId);
+    const seller = await this.userRepository.findById(request.userId);
+    const property = await this.propertyRepository.findById(request.propertyId);
+
+    if (!property || !seller || !client)
       throw new HttpErrors.BadRequest(
         'propertyId or userId or clientId no valid',
       );
@@ -75,7 +77,26 @@ export class RequestController {
 
     request.status = requestStatus.review;
 
-    return this.requestRepository.create(request);
+    const requestCreated = await this.requestRepository.create(request);
+
+    const emailData = {
+      code: requestCreated.code,
+      seller_name: seller.name,
+      property_code: property.code,
+      property_number: property.number,
+      value: property.value,
+      offer: requestCreated.offer,
+      feeNumber: requestCreated.feeNumber,
+      client_name: client.name,
+      client_document: client.document,
+      client_phone: client.phone,
+    };
+    await this.generalFunctions.EmailNotification(
+      emailData,
+      emailTypes.request_create,
+    );
+
+    return requestCreated;
   }
 
   @get('/requests/count')

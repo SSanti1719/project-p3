@@ -35,6 +35,7 @@ const emailTypes = {
   sign_up: 'signUp',
   change_password: 'change-password',
   reset_password: 'reset-password',
+  request_create: 'request-create',
 };
 
 const requestStatus = {
@@ -61,6 +62,12 @@ const cloudFilesRoutes = {
   clients: 'inmobi/clients',
 };
 
+const twilio = {
+  account_sid: process.env.TWILIO_SID,
+  auth_token: process.env.TWILIO_TOKEN,
+  phone_number: process.env.TWILIO_NUMBER,
+};
+
 export {
   mongodb,
   sendgrid,
@@ -72,4 +79,5 @@ export {
   codeTypes,
   propertyStatus,
   cloudFilesRoutes,
+  twilio,
 };

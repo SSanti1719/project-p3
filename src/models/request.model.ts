@@ -61,6 +61,7 @@ export class Request extends Entity {
 
   @property({
     type: 'number',
+    required: true,
   })
   feeNumber?: number;
 

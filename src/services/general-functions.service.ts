@@ -1,6 +1,9 @@
 import {/* inject, */ BindingScope, injectable} from '@loopback/core';
-import {sendgrid} from '../config/index.config';
+import twilio from 'twilio';
+import {sendgrid, twilio as twilioConfig} from '../config/index.config';
 import {html, subject, text} from '../config/utilities';
+
+const smsClient = twilio(twilioConfig.account_sid, twilioConfig.auth_token);
 
 const generator = require('generate-password');
 const cryptoJS = require('crypto-js');
@@ -69,5 +72,13 @@ export class GeneralFunctionsService {
     const code = `${type}-${random}`;
 
     return code;
+  }
+
+  sendSMS(phone: string, body: string): Promise<any> {
+    return smsClient.messages.create({
+      from: <string>twilioConfig.phone_number,
+      to: phone,
+      body,
+    });
   }
 }
