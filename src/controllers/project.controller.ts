@@ -185,21 +185,53 @@ export class ProjectController {
   }
 
   @patch('/projects/{id}')
+  @intercept(filesInterceptor)
   @response(204, {
     description: 'Project PATCH success',
   })
-  async updateById(
-    @param.path.string('id') id: string,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Project, {partial: true}),
+  async updateById(@param.path.string('id') id: string): Promise<void> {
+    const projectOld = await this.projectRepository.findById(id);
+
+    if (!projectOld) throw new HttpErrors.NotFound('Project not found');
+
+    const requestBody = this.req.body;
+
+    const project: any = {};
+
+    if (requestBody.name) {
+      project.name = requestBody.name;
+    }
+
+    if (requestBody.description) {
+      project.description = requestBody.description;
+    }
+
+    if (requestBody.cityId) {
+      const city = await this.cityRepository.findById(requestBody.cityId);
+
+      if (!city) throw new HttpErrors.BadRequest('Invalid cityId');
+
+      project.cityId = requestBody.cityId;
+    }
+
+    if (this.req.file) {
+      cloudinary.v2.uploader.destroy(projectOld.image_public_id);
+
+      const imageUploaded = await cloudinary.v2.uploader.upload(
+        this.req.file.path,
+        {
+          public_id: `${cloudFilesRoutes.projects}/${path.basename(
+            this.req.file.path,
+            path.extname(this.req.file.path),
+          )}`,
         },
-      },
-    })
-    project: Project,
-  ): Promise<void> {
-    await this.projectRepository.updateById(id, project);
+      );
+
+      project.image = imageUploaded.secure_url;
+      project.image_public_id = imageUploaded.public_id;
+    }
+
+    if (this.req.body) await this.projectRepository.updateById(id, project);
   }
 
   @put('/projects/{id}')
