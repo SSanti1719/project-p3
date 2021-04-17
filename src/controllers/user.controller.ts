@@ -27,8 +27,7 @@ import {
 } from '../config/interfaces';
 import {User} from '../models';
 import {
-  adminAuthenticate,
-  sellerAuthenticate
+  adminAuthenticate
 } from '../providers/auth-strategy.provider';
 import {CityRepository, UserRepository} from '../repositories';
 import {AuthService} from '../services';
@@ -173,7 +172,7 @@ export class UserController {
   }
 
   @get('/users')
-  @intercept(sellerAuthenticate)
+  @intercept(adminAuthenticate)
   @response(200, {
     description: 'Array of User model instances',
     content: {
