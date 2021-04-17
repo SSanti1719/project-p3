@@ -36,6 +36,7 @@ const emailTypes = {
   change_password: 'change-password',
   reset_password: 'reset-password',
   request_create: 'request-create',
+  request_update: 'request-update'
 };
 
 const requestStatus = {
@@ -81,3 +82,4 @@ export {
   cloudFilesRoutes,
   twilio,
 };
+

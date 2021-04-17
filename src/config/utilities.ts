@@ -1,6 +1,6 @@
 import {emailTypes} from './index.config';
 
-const mailTemplate = (title: String, dataTitle?: String, fields?: any[]) => {
+const mailTemplate = (title: String, dataTitle?: String, datos?: String, fields?: any[]) => {
   let dataMail = ``;
 
   if (dataTitle && fields) {
@@ -59,7 +59,7 @@ const mailTemplate = (title: String, dataTitle?: String, fields?: any[]) => {
                 margin: 0;
               "
             >
-              Datos del usuario
+             ${datos}
             </h3>
 
             ${templateFields}
@@ -141,6 +141,8 @@ const subject = (type: string): string => {
       return 'Contraseña recuperada exitosamente';
     case emailTypes.request_create:
       return 'Tu solicitud se ha creado exitosamente';
+    case emailTypes.request_update:
+      return 'Tu solicitud se ha actualizado exitosamente';
     default:
       return '';
   }
@@ -156,11 +158,26 @@ const text = (type: string): string => {
       return 'Hola, tu contraseña ha sido restablecida';
     case emailTypes.request_create:
       return 'Hola, tu solicitud se ha creado exitosamente';
+    case emailTypes.request_update:
+      return 'Hola, el estado de tu solicitud se ha actualizado';
     default:
       return '';
   }
 };
-
+const datos = (type: string): string => {
+  switch (type) {
+    case emailTypes.sign_up:
+      return 'Datos del usuario:';
+    case emailTypes.reset_password:
+      return 'Nuevos datos del usuario:';
+    case emailTypes.request_create:
+      return 'Datos de la solicitud: ';
+    case emailTypes.request_update:
+      return 'Datos de la solicitud actualizada: ';
+    default:
+      return '';
+  }
+}
 const html = (type: string, data: any): string => {
   let fields;
   switch (type) {
@@ -171,7 +188,7 @@ const html = (type: string, data: any): string => {
       ];
       return mailTemplate(
         subject(emailTypes.sign_up),
-        'Datos del usuario',
+        'Datos del usuario', datos(emailTypes.sign_up),
         fields,
       );
     case emailTypes.change_password:
@@ -184,7 +201,7 @@ const html = (type: string, data: any): string => {
       ];
       return mailTemplate(
         subject(emailTypes.reset_password),
-        'Contraseña temporal',
+        'Contraseña temporal', datos(emailTypes.reset_password),
         fields,
       );
     case emailTypes.request_create:
@@ -201,8 +218,20 @@ const html = (type: string, data: any): string => {
         ['Telefono del cliente', data.client_phone],
       ];
       return mailTemplate(
-        subject(emailTypes.reset_password),
-        'Contraseña temporal',
+        subject(emailTypes.request_create),
+        'Solicitud realizada exitosamente', datos(emailTypes.request_create),
+        fields,
+      );
+    case emailTypes.request_update:
+      fields = [
+        ['Codigo', data.code],
+        ['Codigo propiedad', data.property_code],
+        ['Numero propiedad', data.property_number],
+        ['El estado de su solicitud fue:', data.status]
+      ];
+      return mailTemplate(
+        subject(emailTypes.request_update),
+        'Estado de la solicitud realizada', datos(emailTypes.request_update),
         fields,
       );
     default:
@@ -211,3 +240,4 @@ const html = (type: string, data: any): string => {
 };
 
 export {subject, text, html};
+

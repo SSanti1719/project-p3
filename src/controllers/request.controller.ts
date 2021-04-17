@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -17,7 +17,7 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
 import {codeTypes, emailTypes, requestStatus} from '../config/index.config';
 import {Request} from '../models';
@@ -25,7 +25,7 @@ import {
   ClientRepository,
   PropertyRepository,
   RequestRepository,
-  UserRepository,
+  UserRepository
 } from '../repositories';
 import {GeneralFunctionsService} from '../services';
 
@@ -39,7 +39,7 @@ export class RequestController {
     @repository(ClientRepository) public clientRepository: ClientRepository,
     @service(GeneralFunctionsService)
     private generalFunctions: GeneralFunctionsService,
-  ) {}
+  ) { }
 
   @post('/requests')
   @response(200, {
@@ -88,6 +88,7 @@ export class RequestController {
       offer: requestCreated.offer,
       feeNumber: requestCreated.feeNumber,
       client_name: client.name,
+      email: client.email,
       client_document: client.document,
       client_phone: client.phone,
     };
@@ -181,9 +182,26 @@ export class RequestController {
       request.status !== requestStatus.accepted &&
       request.status !== requestStatus.rejected &&
       request.status !== requestStatus.review
-    )
-      throw new HttpErrors.BadRequest('request status no valid');
-    await this.requestRepository.updateById(id, request);
+    ) {throw new HttpErrors.BadRequest('request status no valid');} else {
+
+      const findRequest = await this.requestRepository.findById(id);
+      const seller = await this.userRepository.findById(findRequest.userId);
+      const property = await this.propertyRepository.findById(findRequest.propertyId);
+      const client = await this.clientRepository.findById(findRequest.clientId);
+      const emailData = {
+        code: findRequest.code,
+        seller_name: seller.name,
+        property_code: property.code,
+        property_number: property.number,
+        status: request.status,
+        email: client.email
+      };
+      await this.generalFunctions.EmailNotification(
+        emailData,
+        emailTypes.request_update,
+      );
+      await this.requestRepository.updateById(id, request);
+    }
   }
 
   @put('/requests/{id}')
