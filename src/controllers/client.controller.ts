@@ -161,20 +161,72 @@ export class ClientController {
   }
 
   @patch('/clients/{id}')
+  @intercept(filesInterceptor)
   @response(204, {
     description: 'Client PATCH success',
   })
-  async updateById(
-    @param.path.string('id') id: string,
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Client, {partial: true}),
+  async updateById(@param.path.string('id') id: string): Promise<void> {
+    const oldClient = await this.clientRepository.findById(id);
+
+    if (!oldClient) throw new HttpErrors.NotFound('client not found');
+
+    const requestBody = this.req.body;
+
+    const client: any = {};
+
+    if (requestBody.name) {
+      client.name = requestBody.name;
+    }
+
+    if (requestBody.lastname) {
+      client.lastname = requestBody.lastname;
+    }
+
+    if (requestBody.document) {
+      client.document = client.document;
+    }
+
+    if (requestBody.birthday) {
+      client.birthday = requestBody.birthday;
+    }
+
+    if (requestBody.phone) {
+      client.phone = requestBody.phone;
+    }
+
+    if (requestBody.email) {
+      client.email = requestBody.email;
+    }
+
+    if (requestBody.adress) {
+      client.adress = requestBody.adress;
+    }
+
+    if (requestBody.cityId) {
+      const city = await this.cityRepository.findById(requestBody.cityId);
+
+      if (!city) throw new HttpErrors.BadRequest('Invalid cityId');
+
+      client.cityId = requestBody.cityId;
+    }
+
+    if (this.req.file) {
+      cloudinary.v2.uploader.destroy(oldClient.image_public_id);
+
+      const imageUploaded = await cloudinary.v2.uploader.upload(
+        this.req.file.path,
+        {
+          public_id: `${cloudFilesRoutes.projects}/${path.basename(
+            this.req.file.path,
+            path.extname(this.req.file.path),
+          )}`,
         },
-      },
-    })
-    client: Client,
-  ): Promise<void> {
+      );
+
+      client.image = imageUploaded.secure_url;
+      client.image_public_id = imageUploaded.public_id;
+    }
+
     await this.clientRepository.updateById(id, client);
   }
 
