@@ -57,6 +57,7 @@
     "@loopback/service-proxy": "^3.1.1",
     "@sendgrid/mail": "^7.4.2",
     "cloudinary": "^1.25.1",
+    "cors": "^2.8.5",
     "crypto-js": "^4.0.0",
     "dotenv": "^8.2.0",
     "generate-password": "^1.6.0",
