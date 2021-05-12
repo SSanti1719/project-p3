@@ -1,9 +1,9 @@
 import {
   DefaultSequence,
   ExpressRequestHandler,
-  RequestContext
+  RequestContext,
 } from '@loopback/rest';
-import cors from "cors";
+import cors from 'cors';
 import morgan from 'morgan';
 import passport from 'passport';
 import {MyAuthStrategy} from './providers/auth-strategy.provider';
