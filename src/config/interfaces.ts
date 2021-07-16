@@ -14,4 +14,14 @@ interface resetPasswordCredentials {
   username: string;
 }
 
-export {Credentials, changePasswordCredentials, resetPasswordCredentials};
+
+interface ClientOffer{
+  name: string,
+  lastname: string,
+  email:string,
+  phone:string,
+  value:number
+}
+
+export {Credentials, changePasswordCredentials, resetPasswordCredentials, ClientOffer};
+

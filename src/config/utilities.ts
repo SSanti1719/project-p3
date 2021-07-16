@@ -143,6 +143,8 @@ const subject = (type: string): string => {
       return 'Tu solicitud se ha creado exitosamente';
     case emailTypes.request_update:
       return 'Tu solicitud se ha actualizado exitosamente';
+    case emailTypes.client_offer:
+      return 'Nueva oferta de cliente';
     default:
       return '';
   }
@@ -160,6 +162,8 @@ const text = (type: string): string => {
       return 'Hola, tu solicitud se ha creado exitosamente';
     case emailTypes.request_update:
       return 'Hola, el estado de tu solicitud se ha actualizado';
+    case emailTypes.client_offer:
+      return 'Hola, un cliente ha hecho una oferta';
     default:
       return '';
   }
@@ -174,6 +178,8 @@ const datos = (type: string): string => {
       return 'Datos de la solicitud: ';
     case emailTypes.request_update:
       return 'Datos de la solicitud actualizada: ';
+    case emailTypes.client_offer:
+      return 'Datos de la oferta';
     default:
       return '';
   }
@@ -234,6 +240,23 @@ const html = (type: string, data: any): string => {
         'Estado de la solicitud realizada', datos(emailTypes.request_update),
         fields,
       );
+    case emailTypes.client_offer:
+        fields = [
+          ['Nombre', data.name],
+          ['Apellido', data.lastname],
+          ['Email', data.clientEmail],
+          ['Telefono', data.phone],
+          ['Valor', data.value],
+          ['Nombre Proyecto', data.projectName],
+          ['Codigo Proyecto', data.projectCode],
+          ['Bloque', data.block],
+          ['Propiedad', data.property]
+        ];
+        return mailTemplate(
+          subject(emailTypes.client_offer),
+          'Nueva oferta de cliente', datos(emailTypes.client_offer),
+          fields,
+        );
     default:
       return '';
   }

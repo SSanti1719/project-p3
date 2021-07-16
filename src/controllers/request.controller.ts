@@ -52,7 +52,7 @@ export class RequestController {
         'application/json': {
           schema: getModelSchemaRef(Request, {
             title: 'NewRequest',
-            exclude: ['id', 'code'],
+            exclude: ['id', 'code', 'date'],
           }),
         },
       },
@@ -76,6 +76,8 @@ export class RequestController {
     request.code = this.generalFunctions.generateCode(codeTypes.request);
 
     request.status = requestStatus.review;
+
+    request.date = new Date().toJSON();
 
     const requestCreated = await this.requestRepository.create(request);
 

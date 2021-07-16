@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where,
+  Where
 } from '@loopback/repository';
 import {
   del,
@@ -17,11 +17,12 @@ import {
   post,
   put,
   requestBody,
-  response,
+  response
 } from '@loopback/rest';
-import {codeTypes, propertyStatus} from '../config/index.config';
+import {codeTypes, emailTypes, propertyStatus} from '../config/index.config';
+import {ClientOffer} from '../config/interfaces';
 import {Property} from '../models';
-import {BlockRepository, PropertyRepository} from '../repositories';
+import {BlockRepository, CityRepository, ProjectRepository, PropertyRepository, UserRepository} from '../repositories';
 import {GeneralFunctionsService} from '../services';
 
 export class PropertyController {
@@ -32,6 +33,13 @@ export class PropertyController {
     public blockRepository: BlockRepository,
     @service(GeneralFunctionsService)
     private generalFunctions: GeneralFunctionsService,
+    @repository(CityRepository)
+    private cityRepository: CityRepository,
+    @repository(ProjectRepository)
+    private projectRepository: ProjectRepository,
+    @repository(UserRepository)
+    private userRepository: UserRepository
+
   ) {}
 
   @post('/properties')
@@ -163,4 +171,42 @@ export class PropertyController {
   async deleteById(@param.path.string('id') id: string): Promise<void> {
     await this.propertyRepository.deleteById(id);
   }
+
+
+
+  @post('/properties/{id}/offer')
+  @response(204, {
+    description: 'Client offer send successfully',
+  })
+  async sendOffer(@param.path.string('id') id: string, @requestBody() offer:ClientOffer){
+
+    const property = await this.propertyRepository.findById(id);
+
+    if(!property) throw new HttpErrors.BadRequest('Id no valid');
+
+    const block = await this.blockRepository.findById(property.blockId);
+
+    const project = await this.projectRepository.findById(block.projectId);
+
+
+
+    const sellers = await this.userRepository.find({ where: { cityId: project.cityId, role:2} });
+
+    const limitRandom = sellers.length;
+
+    const selectedSeller = sellers[Math.floor(Math.random() * (limitRandom - 0)) + 0];
+
+    const emailData = {
+      ...offer,
+      email: selectedSeller.email,
+      clientEmail: offer.email,
+      projectName: project.name,
+      projectCode: project.code,
+      block: block.name,
+      property: property.number
+    }
+
+    await this.generalFunctions.EmailNotification(emailData, emailTypes.client_offer);
+  }
 }
+
