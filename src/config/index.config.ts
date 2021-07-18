@@ -37,13 +37,14 @@ const emailTypes = {
   reset_password: 'reset-password',
   request_create: 'request-create',
   request_update: 'request-update',
-  client_offer: 'client-offer'
+  client_offer: 'client-offer',
+  client_payment: 'client-payment',
 };
 
 const requestStatus = {
-  review: 'review',
-  accepted: 'accepted',
-  rejected: 'rejected',
+  review: 'EN ESTUDIO',
+  accepted: 'ACEPTADA',
+  rejected: 'RECHAZADA',
 };
 
 const codeTypes = {
@@ -52,16 +53,18 @@ const codeTypes = {
   block: 'BK',
   property: 'PT',
   request: 'RQ',
+  payment: 'PY',
 };
 
 const propertyStatus = {
-  available: 'available',
-  sold: 'sold',
+  available: 'DISPONIBLE',
+  sold: 'VENDIDA',
 };
 
 const cloudFilesRoutes = {
   projects: 'inmobi/projects',
   clients: 'inmobi/clients',
+  payments: 'inmobi/payments',
 };
 
 const twilio = {
@@ -83,4 +86,3 @@ export {
   cloudFilesRoutes,
   twilio,
 };
-

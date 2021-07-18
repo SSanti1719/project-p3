@@ -1,4 +1,4 @@
-import {Entity, model, property, belongsTo} from '@loopback/repository';
+import {belongsTo, Entity, model, property} from '@loopback/repository';
 import {Request} from './request.model';
 
 @model()
@@ -9,6 +9,12 @@ export class Payment extends Entity {
     generated: true,
   })
   id?: string;
+
+  @property({
+    type: 'string',
+    required: true,
+  })
+  code: string;
 
   @property({
     type: 'number',
@@ -26,6 +32,11 @@ export class Payment extends Entity {
     type: 'string',
   })
   receiptPayment?: string;
+
+  @property({
+    type: 'string',
+  })
+  receipt_public_id?: string;
 
   @belongsTo(() => Request)
   requestId: string;

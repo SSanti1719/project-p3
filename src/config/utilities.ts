@@ -1,6 +1,11 @@
 import {emailTypes} from './index.config';
 
-const mailTemplate = (title: String, dataTitle?: String, datos?: String, fields?: any[]) => {
+const mailTemplate = (
+  title: String,
+  dataTitle?: String,
+  datos?: String,
+  fields?: any[],
+) => {
   let dataMail = ``;
 
   if (dataTitle && fields) {
@@ -145,6 +150,8 @@ const subject = (type: string): string => {
       return 'Tu solicitud se ha actualizado exitosamente';
     case emailTypes.client_offer:
       return 'Nueva oferta de cliente';
+    case emailTypes.client_payment:
+      return 'Tu pago ha sido realizado exitosamente';
     default:
       return '';
   }
@@ -164,6 +171,8 @@ const text = (type: string): string => {
       return 'Hola, el estado de tu solicitud se ha actualizado';
     case emailTypes.client_offer:
       return 'Hola, un cliente ha hecho una oferta';
+    case emailTypes.client_payment:
+      return 'Hola, tu pago ha sido realizado exitosamente';
     default:
       return '';
   }
@@ -180,10 +189,12 @@ const datos = (type: string): string => {
       return 'Datos de la solicitud actualizada: ';
     case emailTypes.client_offer:
       return 'Datos de la oferta';
+    case emailTypes.client_payment:
+      return 'Datos de la transaccion';
     default:
       return '';
   }
-}
+};
 const html = (type: string, data: any): string => {
   let fields;
   switch (type) {
@@ -194,7 +205,8 @@ const html = (type: string, data: any): string => {
       ];
       return mailTemplate(
         subject(emailTypes.sign_up),
-        'Datos del usuario', datos(emailTypes.sign_up),
+        'Datos del usuario',
+        datos(emailTypes.sign_up),
         fields,
       );
     case emailTypes.change_password:
@@ -207,7 +219,8 @@ const html = (type: string, data: any): string => {
       ];
       return mailTemplate(
         subject(emailTypes.reset_password),
-        'Contraseña temporal', datos(emailTypes.reset_password),
+        'Contraseña temporal',
+        datos(emailTypes.reset_password),
         fields,
       );
     case emailTypes.request_create:
@@ -225,7 +238,8 @@ const html = (type: string, data: any): string => {
       ];
       return mailTemplate(
         subject(emailTypes.request_create),
-        'Solicitud realizada exitosamente', datos(emailTypes.request_create),
+        'Solicitud realizada exitosamente',
+        datos(emailTypes.request_create),
         fields,
       );
     case emailTypes.request_update:
@@ -233,34 +247,51 @@ const html = (type: string, data: any): string => {
         ['Codigo', data.code],
         ['Codigo propiedad', data.property_code],
         ['Numero propiedad', data.property_number],
-        ['El estado de su solicitud fue:', data.status]
+        ['El estado de su solicitud fue:', data.status],
       ];
       return mailTemplate(
         subject(emailTypes.request_update),
-        'Estado de la solicitud realizada', datos(emailTypes.request_update),
+        'Estado de la solicitud realizada',
+        datos(emailTypes.request_update),
         fields,
       );
     case emailTypes.client_offer:
-        fields = [
-          ['Nombre', data.name],
-          ['Apellido', data.lastname],
-          ['Email', data.clientEmail],
-          ['Telefono', data.phone],
-          ['Valor', data.value],
-          ['Nombre Proyecto', data.projectName],
-          ['Codigo Proyecto', data.projectCode],
-          ['Bloque', data.block],
-          ['Propiedad', data.property]
-        ];
-        return mailTemplate(
-          subject(emailTypes.client_offer),
-          'Nueva oferta de cliente', datos(emailTypes.client_offer),
-          fields,
-        );
+      fields = [
+        ['Nombre', data.name],
+        ['Apellido', data.lastname],
+        ['Email', data.clientEmail],
+        ['Telefono', data.phone],
+        ['Valor', data.value],
+        ['Nombre Proyecto', data.projectName],
+        ['Codigo Proyecto', data.projectCode],
+        ['Bloque', data.block],
+        ['Propiedad', data.property],
+      ];
+      return mailTemplate(
+        subject(emailTypes.client_offer),
+        'Nueva oferta de cliente',
+        datos(emailTypes.client_offer),
+        fields,
+      );
+    case emailTypes.client_payment:
+      fields = [
+        ['Valor', data.value],
+        ['Codigo', data.code],
+        ['Fecha', data.date],
+        ['Codigo de solicitud', data.requestCode],
+        ['Codigo de propiedad', data.propertyCode],
+        ['Valor total', data.totalValue],
+        ['Valor restante', data.remainingValue],
+      ];
+      return mailTemplate(
+        subject(emailTypes.client_payment),
+        'Pago realizado exitosamente',
+        datos(emailTypes.client_payment),
+        fields,
+      );
     default:
       return '';
   }
 };
 
 export {subject, text, html};
-

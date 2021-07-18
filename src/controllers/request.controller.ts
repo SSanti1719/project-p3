@@ -5,7 +5,7 @@ import {
   Filter,
   FilterExcludingWhere,
   repository,
-  Where
+  Where,
 } from '@loopback/repository';
 import {
   del,
@@ -17,7 +17,7 @@ import {
   post,
   put,
   requestBody,
-  response
+  response,
 } from '@loopback/rest';
 import {codeTypes, emailTypes, requestStatus} from '../config/index.config';
 import {Request} from '../models';
@@ -25,7 +25,7 @@ import {
   ClientRepository,
   PropertyRepository,
   RequestRepository,
-  UserRepository
+  UserRepository,
 } from '../repositories';
 import {GeneralFunctionsService} from '../services';
 
@@ -39,34 +39,31 @@ export class RequestController {
     @repository(ClientRepository) public clientRepository: ClientRepository,
     @service(GeneralFunctionsService)
     private generalFunctions: GeneralFunctionsService,
-  ) { }
+  ) {}
 
   @post('/requests')
   @response(200, {
     description: 'Request model instance',
     content: {'application/json': {schema: getModelSchemaRef(Request)}},
   })
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: getModelSchemaRef(Request, {
-            title: 'NewRequest',
-            exclude: ['id', 'code', 'date'],
-          }),
-        },
-      },
-    })
-    request: Omit<Request, 'id'>,
-  ): Promise<Request> {
-    if (!request.propertyId || !request.userId || !request.clientId)
+  async create(@requestBody() request: any): Promise<Request> {
+    console.log('request: ', request);
+
+    if (!request.propertyCode || !request.seller_id || !request.clientDocument)
       throw new HttpErrors.BadRequest(
         'propertyId , userId , clientId is required',
       );
 
-    const client = await this.clientRepository.findById(request.clientId);
-    const seller = await this.userRepository.findById(request.userId);
-    const property = await this.propertyRepository.findById(request.propertyId);
+    const client = await this.clientRepository.findOne({
+      where: {document: request.clientDocument},
+    });
+    console.log('client: ', client);
+    const seller = await this.userRepository.findById(request.seller_id);
+    console.log('seller: ', seller);
+    const property = await this.propertyRepository.findOne({
+      where: {code: request.propertyCode},
+    });
+    console.log('property: ', property);
 
     if (!property || !seller || !client)
       throw new HttpErrors.BadRequest(
@@ -79,7 +76,15 @@ export class RequestController {
 
     request.date = new Date().toJSON();
 
-    const requestCreated = await this.requestRepository.create(request);
+    const requestCreated = await this.requestRepository.create({
+      code: request.code,
+      date: request.date,
+      clientId: client.id,
+      userId: seller.id,
+      feeNumber: request.feeNumber,
+      offer: request.offer,
+      propertyId: property.id,
+    });
 
     const emailData = {
       code: requestCreated.code,
@@ -178,17 +183,20 @@ export class RequestController {
         },
       },
     })
-    request: Request,
+    request: Request | any,
   ): Promise<void> {
     if (
       request.status !== requestStatus.accepted &&
       request.status !== requestStatus.rejected &&
       request.status !== requestStatus.review
-    ) {throw new HttpErrors.BadRequest('request status no valid');} else {
-
+    ) {
+      throw new HttpErrors.BadRequest('request status no valid');
+    } else {
       const findRequest = await this.requestRepository.findById(id);
       const seller = await this.userRepository.findById(findRequest.userId);
-      const property = await this.propertyRepository.findById(findRequest.propertyId);
+      const property = await this.propertyRepository.findById(
+        findRequest.propertyId,
+      );
       const client = await this.clientRepository.findById(findRequest.clientId);
       const emailData = {
         code: findRequest.code,
@@ -196,12 +204,16 @@ export class RequestController {
         property_code: property.code,
         property_number: property.number,
         status: request.status,
-        email: client.email
+        email: client.email,
       };
       await this.generalFunctions.EmailNotification(
         emailData,
         emailTypes.request_update,
       );
+
+      if (request.status === requestStatus.accepted)
+        request.totalPayment = property.value;
+
       await this.requestRepository.updateById(id, request);
     }
   }
