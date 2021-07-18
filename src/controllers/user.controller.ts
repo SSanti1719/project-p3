@@ -103,6 +103,8 @@ export class UserController {
       let token = this.authenticationService.GenerateToken(user);
       return {
         username: user.email,
+        id: user.id,
+        role: user.role,
         token,
       };
     }
