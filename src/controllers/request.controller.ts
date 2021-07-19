@@ -19,7 +19,12 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {codeTypes, emailTypes, requestStatus} from '../config/index.config';
+import {
+  codeTypes,
+  emailTypes,
+  propertyStatus,
+  requestStatus,
+} from '../config/index.config';
 import {Request} from '../models';
 import {
   ClientRepository,
@@ -247,6 +252,9 @@ export class RequestController {
           );
 
         if (request.status === requestStatus.accepted) {
+          this.propertyRepository.updateById(property.id, {
+            status: propertyStatus.sold,
+          });
           const requestsForCancel = await this.requestRepository.find({
             where: {propertyId: property.id, status: requestStatus.review},
           });
