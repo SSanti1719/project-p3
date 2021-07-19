@@ -265,6 +265,7 @@ const html = (type: string, data: any): string => {
         ['Codigo Proyecto', data.projectCode],
         ['Bloque', data.block],
         ['Propiedad', data.property],
+        ['Codigo Propiedad', data.propertyCode],
       ];
       return mailTemplate(
         subject(emailTypes.client_offer),
