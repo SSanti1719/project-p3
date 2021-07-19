@@ -143,6 +143,8 @@ export class PaymentController {
       remainingValue: request.totalPayment,
       requestCode,
       email: client.email,
+      feePayment: request.feePayment,
+      feeNumber: request.feeNumber,
     };
 
     this.generalFunctions.EmailNotification(

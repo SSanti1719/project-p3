@@ -70,6 +70,26 @@ export class RequestController {
         'propertyId or userId or clientId no valid',
       );
 
+    const clientNotRepeatRequestVerification = await this.requestRepository.find(
+      {
+        where: {clientId: client.id, propertyId: property.id},
+      },
+    );
+
+    if (clientNotRepeatRequestVerification.length)
+      throw new HttpErrors.BadRequest(
+        'Error, el mismo cliente no puede solicitar mas de una vez por la misma propiedad',
+      );
+
+    const requestNotAcceptedVerification = await this.requestRepository.find({
+      where: {propertyId: property.id, status: requestStatus.accepted},
+    });
+
+    if (requestNotAcceptedVerification.length)
+      throw new HttpErrors.BadRequest(
+        'Error, este inmueble ya ha sido vendido',
+      );
+
     request.code = this.generalFunctions.generateCode(codeTypes.request);
 
     request.status = requestStatus.review;
@@ -211,8 +231,33 @@ export class RequestController {
         emailTypes.request_update,
       );
 
-      if (request.status === requestStatus.accepted)
+      if (
+        request.status === requestStatus.accepted ||
+        request.status === requestStatus.review
+      ) {
         request.totalPayment = property.value;
+
+        const requestNotAcceptedVerification = await this.requestRepository.find(
+          {where: {propertyId: property.id, status: requestStatus.accepted}},
+        );
+
+        if (requestNotAcceptedVerification.length)
+          throw new HttpErrors.BadRequest(
+            'Error, esta propiedad ya ha sido vendida',
+          );
+
+        if (request.status === requestStatus.accepted) {
+          const requestsForCancel = await this.requestRepository.find({
+            where: {propertyId: property.id, status: requestStatus.review},
+          });
+
+          requestsForCancel.forEach(rqt => {
+            rqt.status = requestStatus.rejected;
+
+            this.requestRepository.updateById(rqt.id, rqt);
+          });
+        }
+      }
 
       await this.requestRepository.updateById(id, request);
     }

@@ -282,6 +282,8 @@ const html = (type: string, data: any): string => {
         ['Codigo de propiedad', data.propertyCode],
         ['Valor total', data.totalValue],
         ['Valor restante', data.remainingValue],
+        ['Numero de cuotas', data.feeNumber],
+        ['Valor de la cuota', data.feePayment],
       ];
       return mailTemplate(
         subject(emailTypes.client_payment),
