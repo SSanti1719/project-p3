@@ -261,7 +261,6 @@ const html = (type: string, data: any): string => {
         ['Apellido', data.lastname],
         ['Email', data.clientEmail],
         ['Telefono', data.phone],
-        ['Valor', data.value],
         ['Nombre Proyecto', data.projectName],
         ['Codigo Proyecto', data.projectCode],
         ['Bloque', data.block],
